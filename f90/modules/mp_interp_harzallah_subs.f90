@@ -9,7 +9,7 @@ module mp_interp_harzallah_subs
 implicit none
 
     integer             :: debug_unit=10
-    logical             :: debug_write = .true.  
+    logical             :: debug_write = .false.  
     
 contains
 
@@ -117,8 +117,6 @@ subroutine mp_interp_harzallah(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
                 call interp_stat(n_inner_in, ym_in, ym_int_out, rmse)
                 write (debug_unit,'("rmse: ", g12.4)') rmse
             end if
-            
-            call hz_int(spline_case, n_inner_in, ym_in, yfill, x_ctrl_in, nsubint_in, ntargs_out, x_targ_in, y_int_out, ym_int_out)
 
             y_int(beg_subint:end_subint) = y_int_out((extra_nsubint+1):(extra_nsubint + nsubint_padded))
                 

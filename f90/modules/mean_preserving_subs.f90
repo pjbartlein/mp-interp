@@ -5,7 +5,7 @@ module mean_preserving_subs
 
     integer             :: debug_unit = 10
     integer             :: out_unit = 6
-    logical             :: debug_em = .true.
+    logical             :: debug_em = .false.
 
 contains
     
@@ -259,9 +259,6 @@ subroutine dzero(nm,nd,monlen,xm,xd0)
 
 end subroutine dzero
 
-
-
-
 subroutine interval_mean(ninterval, nsubint, n, v_int, vmiss, vm_int)
     
     implicit none
@@ -294,44 +291,6 @@ subroutine interval_mean(ninterval, nsubint, n, v_int, vmiss, vm_int)
     end do
     
 end subroutine interval_mean
-
-subroutine pweights(nw, pwgt, pwgtsum)
-! get parabolic-shaped weights
-
-    implicit none
-    
-    integer(4), intent(in)  :: nw ! number of weights
-    real(8), intent(out)    :: pwgt(nw), pwgtsum
-    
-    real(8)                 :: p(nw), a = 0.001d0/2.48d0/1.8125d0
-    real(8)                 :: x(nw)
-    integer(4)              :: i
-    
-    pwgtsum = 0.0d0
-    !if (debug_em) write (debug_unit, '("pweights: nw: ",i4)') nw
-    do i = 1,nw
-        !x(i) = -1.0d0 * dble(nw/2) + dble(i-1)
-        x(i) = -1.0d0 * dble((nw - 1)) / 2.0d0 + dble(i-1)
-        p(i) = a * x(i)**2.0 
-        pwgt(i) = p(1) - p(i) ! zero the beginning and ending weights
-        !pwgt(i) = p(i)
-        pwgtsum = pwgtsum + pwgt(i)
-    end do  
-    !if (debug_em) write (debug_unit, *) pwgtsum
-    pwgt = pwgt * (1.0d0 / pwgtsum)
-    pwgtsum = sum(pwgt(1:nw))
-    !if (debug_em) write (debug_unit, '(10f15.10)') x
-    !if (debug_em)  write (debug_unit, '(10f15.10)') p
-    !if (debug_em) write (debug_unit, '(10f15.10)') pwgt
-    !if (debug_em) write (debug_unit, *) pwgtsum
-    !write (*, '("pweights: nw: ",i4)') nw
-    !write (*, '(10f12.8)') x
-    !write (*, '(10f12.8)') p
-    !write (*, '(10f12.8)') pwgt
-    !write (*, *) pwgtsum
-    !stop
-    
-end subroutine pweights
 
 subroutine interp_stat(nctrl, ym, ym_int, rmse)
 

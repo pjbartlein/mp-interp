@@ -7,7 +7,7 @@ module mp_interp_killworth_subs
 implicit none
 
     integer             :: debug_unit=10
-    logical             :: debug_write = .true.  
+    logical             :: debug_write = .false.  
     
 contains
     

@@ -7,7 +7,7 @@ module mp_interp_rymes_and_meyer_subs
 implicit none
 
     integer             :: debug_unit=10
-    logical             :: debug_write = .true.  
+    logical             :: debug_write = .false.  
     
 contains
 
