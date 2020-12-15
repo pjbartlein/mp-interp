@@ -2,7 +2,7 @@
 
 ## Mean-preserving interpolation ## 
 
-This repository contains Fortran 90/95 code that implements four approaches for mean-preserving interpolation, for example, the interpolation of pseudo-daily values from monthly means, that when averaged, reproduce the monthly means.  (The often-used linear interpolation does not do so.)  The four methods compared here include those by:
+This repository contains Fortran 90/95 code that implements four approaches for mean-preserving interpolation, e.g. the interpolation of pseudo-daily values from monthly means, that when averaged, reproduce the monthly means.  (The often-used linear interpolation does not do so.)  The four methods compared here include those by:
 
 - Epstein, E.S. (1991), On obtaining daily climatological values from monthly means, *J. Climate* 4:365-368;  
 - Harzallah, A. (1995) The interpolation of data series using a constrained iterating technique, *Monthly Weather Review* 123:2251-2254;
