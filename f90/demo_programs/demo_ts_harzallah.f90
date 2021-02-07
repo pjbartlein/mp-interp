@@ -77,7 +77,7 @@ max_ntargs_in = 366 + 2 * npad * 31  ! include padding
 
 total_secs = secnds(0.0)
 
-do ivar = 1, nvars
+do ivar = 1, 1 ! nvars
     
     loop_secs = secnds(0.0)
 
