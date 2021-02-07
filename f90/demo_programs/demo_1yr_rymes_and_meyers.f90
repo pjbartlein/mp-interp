@@ -1,8 +1,8 @@
-program demo_1yr_harzallah_01
-! demonstrates Harzallah (1995) iterative-spline pseudo-daily interpolation -- single year of different data sets
+program demo_1yr_rymes_and_meyer_01
+! demonstrates Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation  -- single year of different data sets
     
 use mean_preserving_subs
-use mp_interp_harzallah_subs
+use mp_interp_rymes_and_meyer_subs
     
 implicit none
 
@@ -42,17 +42,10 @@ integer(4)          :: ntargs                       ! total number of target poi
 ! control variables
 logical             :: no_negatives = .false.       ! no negative interpolated values (e.g. precip)
 logical             :: match_mean = .false.         ! use enfore_mean() to match observed means
+logical             :: lowerbound = .false., upperbound = .false.  ! set lower and upper bounds?
+real(8)             :: lower(nctrl), upper(nctrl)   ! upper and lower bounds
 
-integer(4)          :: spline_case                  ! type of spline (1 = cubic; 2 = pchip; 3 = Akima)
 integer(4)          :: npad                         ! number of months to pad at each end of an inner interval
-
-! spline cases are
-! 1 = Burkhardt implementation of cubic spline (in spline.f90, 
-!   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
-! 2 = Burkhardt implementation of piecewise cubic Hermite spline (in spline.f90, 
-!   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
-! 3 = Akima's method, in akima697, https://calgo.acm.org/, last accessed 8 Dec 2020)
-! artificial data
 
 integer(4)          :: demo_ctrl_beg(nm), demo_ctrl_mid(nm), demo_nsubint(nm)
 real(4)             :: demo_tas(nm), demo_pr(nm)
@@ -72,16 +65,20 @@ do i = 1, ntargs
 end do
 nsubint = demo_nsubint
 
-spline_case = 2 
 npad = 0
 
 ! example 1
 write (*,'(a)') "Example 1:  temperature, no adjustment of means"
 ym = demo_tas
 no_negatives = .false.; match_mean = .false. 
+lowerbound = .false.
+upperbound = .false.
+lower = 0.0d0 / 0.0d0
+upper = 0.0d0 / 0.0d0
 
-call mp_interp_harzallah(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+    lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
+    ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym
@@ -100,9 +97,14 @@ write (*, '(a)') " "
 write (*,'(a)') "Example 2:  temperature, enforce equality of input and interpolateed mean values"
 ym = demo_tas
 no_negatives = .false.; match_mean = .true. 
+lowerbound = .false.
+upperbound = .false.
+lower = 0.0d0 / 0.0d0
+upper = 0.0d0 / 0.0d0
 
-call mp_interp_harzallah(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+    lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
+    ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym
@@ -118,12 +120,17 @@ write (*, '(a)') "Note that there is little practical difference between the int
 
 ! example 3
 write (*, '(a)') " "
-write (*,'(a)') "Example 3:  precipitation rate, no_negetives = .true., but no adjustment of means"
+write (*,'(a)') "Example 3:  precipitation rate, no_negetives and lowerbound = .true., but no adjustment of means"
 ym = demo_pr
 no_negatives = .true.; match_mean = .false. 
+lowerbound = .true.
+upperbound = .false.
+lower = 0.0d0 
+upper = 0.0d0 / 0.0d0
 
-call mp_interp_harzallah(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+    lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
+    ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym
@@ -140,12 +147,17 @@ write (*, '(a)') "interpolated data.  Next, enforce the equality of the mean val
 
 ! example 4
 write (*, '(a)') " "
-write (*,'(a)') "Example 4:  precipitation rate, no_negetives = .true., enforce equality of input and interpolateed mean values"
+write (*,'(a)') "Example 4:  precipitation rate, no_negetivesl and lower bound = .true., enforce equality of input and interpolateed mean values"
 ym = demo_pr
 no_negatives = .true.; match_mean = .true. 
+lowerbound = .true.
+upperbound = .false.
+lower = 0.0d0 
+upper = 0.0d0 / 0.0d0
 
-call mp_interp_harzallah(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+    lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
+    ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym

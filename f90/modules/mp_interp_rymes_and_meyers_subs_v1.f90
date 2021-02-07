@@ -38,6 +38,7 @@ subroutine mp_interp_rymes_and_meyer(n_outer, n_inner, nctrl, ym, yfill, x_ctrl,
     real(8), intent(out)        :: ym_int(nctrl)                    ! mean of interpolated values
                                                                     ! inner interval = e.g. months, outer interval = e.g. year
     
+    real(8)                     :: ybeg, yend                       ! initial endpoint values
     integer(4), parameter       :: maxit = 50                       ! max number of iterations
     integer(4), parameter       :: init_type = 2                    ! initialization type, 1 = spread, 2 = linear interp
     
@@ -46,104 +47,87 @@ subroutine mp_interp_rymes_and_meyer(n_outer, n_inner, nctrl, ym, yfill, x_ctrl,
     real(8)             :: y_int_out(max_ntargs_in), ym_int_out(max_ntargs_in)
     real(8)             :: lower_in(max_nctrl_in), upper_in(max_nctrl_in)
     real(8)             :: rmse
-    
     integer(4)          :: nsubint_in(max_nctrl_in)
     
-    integer(4)          :: n, nn
-    integer(4)          :: beg_inner, end_inner, beg_ctrl, end_ctrl, nctrl_in, beg_targ, end_targ, ntarg_in, beg_int, end_int, nint_out
+    integer(4)          :: i, n
+    integer(4)          :: nn, beg_inner, end_inner, beg_subint, end_subint, n_inner_in, ntargs_out
+    integer(4)          :: nbeg, nend, nsubint_padded, extra_nsubint
     
     if (debug_write) write (debug_unit,'(a)') "In mp_interp_rymes-and-meyer()"
 
     ! loop over number of years
-    nn = 1 ! starting pseudo-daily value
+    nn = 1
     do n = 1, n_outer
-        
-        ! range of inner intervals (e.g. months)
-        beg_inner = (n - 1) * n_inner + 1 
-        end_inner = n * n_inner 
-        
-        ! range of control values (padded)
-        beg_ctrl = beg_inner - npad
-        end_ctrl = end_inner + npad
-
-        if (n .eq. 1) beg_ctrl = 1
-        if (n .eq. n_outer) end_ctrl = n * n_inner
     
-        nctrl_in = end_ctrl - beg_ctrl + 1
-        
-        ! range of target values, including padding
-        beg_targ = sum(nsubint(1:(beg_ctrl - 1))) + 1
-        end_targ = beg_targ + sum(nsubint(beg_ctrl:end_ctrl)) - 1
-        
-        ntarg_in = end_targ - beg_targ + 1
-        
-        ! range of interpolated values to save
-        beg_int = nn 
-        end_int = nn + sum(nsubint(beg_inner:end_inner)) - 1
-        
-        nint_out = end_int - beg_int + 1
-        
-        ! update nn for next year
-        nn = end_int + 1
-        !write (*, '(5i6)') n, beg_int, end_int, nint_out, nn
-        
-        if (debug_write) write (debug_unit, '(a)') " "
-        if (debug_write) write (debug_unit, '("n,beg_inner,end_inner,n_inner): ",4i9)') &
-            n,beg_inner, end_inner, end_inner - beg_inner + 1
-        if (debug_write) write (debug_unit, '("  beg_ctrl,end_ctrl,nctrl_in,x_ctrl(beg_ctrl),x_ctrl(end_ctrl): ",3i9,2f16.9)') &
-                beg_ctrl,end_ctrl,nctrl_in,x_ctrl(beg_ctrl),x_ctrl(end_ctrl)
-        if (debug_write) write (debug_unit, '("  beg_targ,end_targ,ntarg_in,x_targ(beg_targ),x_targ(end_targ): ",3i9,2f16.9)') &
-                beg_targ,end_targ,ntarg_in,x_targ(beg_targ),x_targ(end_targ)
-        if (debug_write) write (debug_unit, '("  beg_int,end_int,nint_in,x_targ(beg_int),x_targ(end_int): ",3i9,2f16.9)') &
-                beg_int,end_int,nint_out,x_targ(beg_int),x_targ(end_int)
+        nbeg = npad; nend = npad
+    
+        if (n .eq. 1) nbeg = 0
+        if (n .eq. n_outer) nend = 0
+    
+        beg_inner = (n - 1) * n_inner + 1
+        end_inner = beg_inner + (n_inner - 1)
+        ntargs_out = sum(nsubint((beg_inner - nbeg):(end_inner + nend)))
+        beg_subint = nn
+        end_subint = beg_subint - 1 + sum(nsubint(beg_inner:end_inner))
+        nn = end_subint + 1
+        nsubint_padded = (end_subint - beg_subint + 1)
+    
+        n_inner_in = (end_inner + nend) - (beg_inner - nbeg) + 1
+        if (n .gt. 1) then
+            extra_nsubint = sum(nsubint((beg_inner - nbeg):(beg_inner))) - nsubint(beg_inner)
+        else 
+            extra_nsubint = 0
+        end if
+
+        if (debug_write) write (debug_unit, '("n,beg_inner,end_inner,nbeg,nend,beg_inner-nbeg,end_inner+nend,: ", 7i5)') & 
+            n, beg_inner, end_inner, nbeg, nend, beg_inner - nbeg, end_inner + nend
+        if (debug_write) write &
+            (debug_unit, '("n_inner_in, ntargs_out, beg_subint, end_subint, nsubint_padded, extra_nsubint: ", 2i5, 2i8, 2i4)') &
+            n_inner_in, ntargs_out, beg_subint, end_subint, nsubint_padded, extra_nsubint
     
         ! load temporary variables
-        
-        ym_in = 0.0d0; x_ctrl_in = 0.0d0; nsubint_in = 0; y_int_out = 0.0
-
-        ym_in(1:nctrl_in) = ym(beg_ctrl:end_ctrl)
-        x_ctrl_in(1:nctrl_in) = x_ctrl(beg_ctrl:end_ctrl)
-        nsubint_in(1:nctrl_in) = nsubint(beg_ctrl:end_ctrl)   
-        lower_in(1:nctrl_in) = lower(beg_ctrl:end_ctrl)
-        upper_in(1:nctrl_in) = upper(beg_ctrl:end_ctrl)
-        x_targ_in(1:ntarg_in) = x_targ(beg_targ:end_targ)
-        
-        if (debug_write) write (debug_unit, '(a)') " ym_in(1:nctrl_in)"
-        if (debug_write) write (debug_unit, '(16f16.9)') ym_in(1:nctrl_in)
-        if (debug_write) write (debug_unit, '(a)') " x_ctrl_in(1:nctrl_in)"
-        if (debug_write) write (debug_unit, '(16f16.9)') x_ctrl_in(1:nctrl_in)
-        if (debug_write) write (debug_unit, '(a)') " nsubint_in(1:nctrl_in)"
-        if (debug_write) write (debug_unit, '(16i16)') nsubint_in(1:nctrl_in)
-        if (debug_write) write (debug_unit, '(a)') " x_targ_in(1), x_targ_in(ntarg_in)"
-        if (debug_write) write (debug_unit, '(16f16.9)') x_targ_in(1), x_targ_in(ntarg_in)
+    
+        ym_in = 0.0d0; x_ctrl_in = 0.0d0; nsubint_in = 0; y_int_out = 0.0d0; lower_in = 0.0d0; upper_in = 0.0d0
+        ym_in(1:n_inner_in) = ym((beg_inner - nbeg):(end_inner + nend))
+        x_ctrl_in(1:n_inner_in) = x_ctrl((beg_inner - nbeg):(end_inner + nend))
+        nsubint_in(1:n_inner_in) = nsubint((beg_inner - nbeg):(end_inner + nend))
+        lower_in(1:n_inner_in) = lower((beg_inner - nbeg):(end_inner + nend))
+        upper_in(1:n_inner_in) = upper((beg_inner - nbeg):(end_inner + nend))
+    
+        do i = 1, ntargs_out
+            x_targ_in(i) = dble(beg_subint - extra_nsubint) + dble(i - 1)
+        end do
+    
+        if (debug_write) write (debug_unit, '(16f8.2)') ym_in(1:n_inner_in)
+        if (debug_write) write (debug_unit, '(16f8.2)') x_ctrl_in(1:n_inner_in)
+        if (debug_write) write (debug_unit, '(16i8)') nsubint_in(1:n_inner_in)
         
         ! if any missing values, set output to yfill, otherwise call hz_int()
-        if (any(ym_in(1:nctrl_in) .eq. yfill)) then
+        if (any(ym_in(1:n_inner_in) .eq. yfill)) then
         
-            if (debug_write) write (debug_unit, '("missing values, interval ", i8)') n
-            y_int(beg_targ:end_targ) = yfill
+            !if (debug_write) write (debug_unit, '("missing values, interval ", i8)') n
+            y_int(beg_subint:end_subint) = yfill
             
         else
-        
-            if (debug_write) write (debug_unit, '("call hz_int(), interval ", i8)') n
-    
-            call rm_int(nctrl_in, ym_in, yfill, x_ctrl_in, nsubint_in, lowerbound, lower_in, upperbound, upper_in, &
-                init_type, ntarg_in, maxit, x_targ_in, y_int_out, ym_int_out)
             
-            if (debug_write) write (debug_unit, '(a)') "back from hz_int()"
-        
+            if (debug_write) write (debug_unit, '("call rm_int(), interval ", i8)') n
+            
+            call rm_int(n_inner_in, ym_in, yfill, x_ctrl_in, nsubint_in, lowerbound, lower_in, upperbound, upper_in, &
+                init_type, ntargs_out, maxit, x_targ_in, y_int_out, ym_int_out)
+            
+            if (debug_write) write (debug_unit, '(a)') "back from rm_int()"
+
             if (debug_write) write (debug_unit,'(10f10.6)') y_int_out
-            if (debug_write) write (debug_unit,'(16f10.6)') ym_in(1:nctrl_in)
-            if (debug_write) write (debug_unit,'(16f10.6)') ym_int_out(1:nctrl_in)
-            if (debug_write) write (debug_unit,'(16f10.6)') ym_in(1:nctrl_in) - ym_int_out(1:nctrl_in)
+            if (debug_write) write (debug_unit,'(12f10.6)') ym_in(1:n_inner_in)
+            if (debug_write) write (debug_unit,'(12f10.6)') ym_int_out(1:n_inner_in)
+            if (debug_write) write (debug_unit,'(12f10.6)') ym_in(1:n_inner_in) - ym_int_out(1:n_inner_in)
             if (debug_write) then
-                call interp_stat(nctrl_in, ym_in, ym_int_out, rmse)
+                call interp_stat(n_inner_in, ym_in, ym_int_out, rmse)
                 write (debug_unit,'("rmse: ", g12.4)') rmse
             end if
-        
-            !write (*, '(7i9)') n,beg_targ, beg_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out
-            y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(end_int - end_targ + 1))
-                
+    
+            y_int(beg_subint:end_subint) = y_int_out((extra_nsubint+1):(extra_nsubint + nsubint_padded))
+
         end if
 
     end do

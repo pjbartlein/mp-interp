@@ -1,8 +1,8 @@
-program demo_ts_harzallah_01
-! demonstrates Harzallah (1995) iterative-spline pseudo-daily interpolation
+program demo_ts_rymes_and_meyer_01
+! demonstrates Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation
     
 use mean_preserving_subs
-use mp_interp_harzallah_subs
+use mp_interp_rymes_and_meyer_subs
     
 implicit none
 
@@ -43,7 +43,7 @@ integer(4)          :: max_nctrl_in                 ! maximum number of inner in
 integer(4)          :: max_ntargs_in                ! maximum number of subintervals (days) in an outer interval (years)
 
 character(1)        :: header
-character(16)       :: methodname = "harzallah_"
+character(16)       :: methodname = "rymes_and_meyer_"
 character(1024)     :: sourcepath, interppath, dataname, infile
 
 real(4)             :: total_secs, loop_secs
@@ -51,26 +51,17 @@ real(4)             :: total_secs, loop_secs
 ! control variables
 logical             :: no_negatives = .false.       ! no negative interpolated values (e.g. precip)
 logical             :: match_mean = .false.         ! use enfore_mean() to match observed means
-logical             :: smooth = .true.              ! smooth across outer intervals
+logical             :: lowerbound = .false., upperbound = .false.  ! set lower and upper bounds?
+real(8)             :: lower(nctrl), upper(nctrl)   ! upper and lower bounds
 
-integer(4)          :: spline_case                  ! type of spline (1 = cubic; 2 = pchip; 3 = Akima)
 integer(4)          :: npad                         ! number of months to pad at each end of an inner interval
-
-! spline cases are
-! 1 = Burkhardt implementation of cubic spline (in spline.f90, 
-!   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
-! 2 = Burkhardt implementation of piecewise cubic Hermite spline (in spline.f90, 
-!   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
-! 3 = Akima's method, in akima697, https://calgo.acm.org/, last accessed 8 Dec 2020)
-
 
 ! source and output pathss, modify as necessary
 sourcepath = "../../mp-interp/data/source/"
 interppath = "../../mp-interp/data/interp/"
-!sourcepath = "../../mp-interp-mac/data/source/"
-!interppath = "../../mp-interp-mac/data/interp/"
+!sourcepath = "../../mp-interp_mac/data/source/"
+!interppath = "../../mp-interp_mac/data/interp/"
 
-spline_case = 2 
 npad = 2
 max_nctrl_in = 12 + 2 * npad        ! include padding
 max_ntargs_in = 366 + 2 * npad * 31  ! include padding
@@ -80,32 +71,44 @@ total_secs = secnds(0.0)
 do ivar = 1, nvars
     
     loop_secs = secnds(0.0)
-
+    
     select case(ivar)
     case (1)
         dataname = "tas_monsoon"
         no_negatives = .false.
         match_mean = .true.
         tol = 0.01
-        smooth = .true.
+        lowerbound = .false.
+        upperbound = .false.
+        lower = 0.0d0
+        upper = 0.0d0
     case (2)
         dataname = "tas_med"
         no_negatives = .false.
         match_mean = .true.
         tol = 0.01
-        smooth = .true.
+        lowerbound = .false.
+        upperbound = .false.
+        lower = 0.0d0
+        upper = 0.0d0
     case (3)
         dataname = "pr_monsoon"
         no_negatives = .true.
         match_mean = .true.
         tol = 0.01
-        smooth = .true.
+        lowerbound = .true.
+        upperbound = .false.
+        lower = 0.0d0 
+        upper = 0.0d0
     case (4)
         dataname = "pr_med"
         no_negatives = .true.
         match_mean = .true.
         tol = 0.01
-        smooth = .true.
+        lowerbound = .true.
+        upperbound = .false.
+        lower = 0.0d0 
+        upper = 0.0d0
     case default
         stop "ivar"
     end select
@@ -150,8 +153,9 @@ do ivar = 1, nvars
     
     ! mean-preserving interpolation
 
-    call mp_interp_harzallah(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-        spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+        lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
+        ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
     ! write out monthly time series
     write (3, '(a)') "Year, Month, YrMn, MonBeg, MidMonth, ndays, ym, ym_int"

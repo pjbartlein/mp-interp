@@ -57,7 +57,7 @@ integer(4)          :: npad                         ! number of months to pad at
 sourcepath = "e:\Projects\MeanPreserving\data\test_methods\"
 interppath = "e:\Projects\MeanPreserving\data\test_methods\"
 
-npad = 1
+npad = 0
 max_nctrl_in = 12 + 2 * npad        ! include padding
 max_ntargs_in = 366 + 2 * npad * 31  ! include padding
 

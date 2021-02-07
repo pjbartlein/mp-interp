@@ -1,8 +1,8 @@
-program demo_ts_harzallah_01
-! demonstrates Harzallah (1995) iterative-spline pseudo-daily interpolation
+program test_rymes_and_meyer_01
+! tests Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation
     
 use mean_preserving_subs
-use mp_interp_harzallah_subs
+use mp_interp_rymes_and_meyer_subs
     
 implicit none
 
@@ -14,10 +14,10 @@ implicit none
 ! monsoon-climate grid point from NCEP-DOEv2 Reanalysis II data set are used to illusatrate the approach and graphically 
 ! compare the results to "observed" (i.e. reanalysis) daily data.
 
-integer(4), parameter  :: nvars = 4                 ! number of demonstration time series
-integer(4), parameter  :: ny = 20, nm = 12          ! number of years and months in a year
+integer(4), parameter  :: nvars = 1                 ! number of demonstration time series
+integer(4), parameter  :: ny = 1, nm = 12           ! number of years and months in a year
 integer(4), parameter  :: nctrl = ny * nm           ! total number of control points
-integer(4), parameter  :: maxtarg = 7305            ! total number of days
+integer(4), parameter  :: maxtarg = 365             ! total number of days
 real(8)             :: ym(nctrl)                    ! control data (e.g. observed monthly means)            
 real(8)             :: x_ctrl(nctrl)                ! time values of control points (e.g. mid-month day number in the range 1 to maxtarg)
 real(8)             :: x_targ(maxtarg)              ! time values of target points (e.g. day number in the range 1 to maxtarg
@@ -43,7 +43,7 @@ integer(4)          :: max_nctrl_in                 ! maximum number of inner in
 integer(4)          :: max_ntargs_in                ! maximum number of subintervals (days) in an outer interval (years)
 
 character(1)        :: header
-character(16)       :: methodname = "harzallah_"
+character(16)       :: methodname = "rymes_and_meyer_"
 character(1024)     :: sourcepath, interppath, dataname, infile
 
 real(4)             :: total_secs, loop_secs
@@ -51,27 +51,16 @@ real(4)             :: total_secs, loop_secs
 ! control variables
 logical             :: no_negatives = .false.       ! no negative interpolated values (e.g. precip)
 logical             :: match_mean = .false.         ! use enfore_mean() to match observed means
-logical             :: smooth = .true.              ! smooth across outer intervals
+logical             :: lowerbound = .false., upperbound = .false.  ! set lower and upper bounds?
+real(8)             :: lower(nctrl), upper(nctrl)   ! upper and lower bounds
 
-integer(4)          :: spline_case                  ! type of spline (1 = cubic; 2 = pchip; 3 = Akima)
 integer(4)          :: npad                         ! number of months to pad at each end of an inner interval
 
-! spline cases are
-! 1 = Burkhardt implementation of cubic spline (in spline.f90, 
-!   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
-! 2 = Burkhardt implementation of piecewise cubic Hermite spline (in spline.f90, 
-!   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
-! 3 = Akima's method, in akima697, https://calgo.acm.org/, last accessed 8 Dec 2020)
-
-
 ! source and output pathss, modify as necessary
-sourcepath = "../../mp-interp/data/source/"
-interppath = "../../mp-interp/data/interp/"
-!sourcepath = "../../mp-interp-mac/data/source/"
-!interppath = "../../mp-interp-mac/data/interp/"
+sourcepath = "e:\Projects\MeanPreserving\data\test_methods\"
+interppath = "e:\Projects\MeanPreserving\data\test_methods\"
 
-spline_case = 2 
-npad = 2
+npad = 0
 max_nctrl_in = 12 + 2 * npad        ! include padding
 max_ntargs_in = 366 + 2 * npad * 31  ! include padding
 
@@ -80,46 +69,30 @@ total_secs = secnds(0.0)
 do ivar = 1, nvars
     
     loop_secs = secnds(0.0)
-
+    
     select case(ivar)
     case (1)
-        dataname = "tas_monsoon"
+        dataname = "rymes-and-meyers_fig05"
         no_negatives = .false.
         match_mean = .true.
         tol = 0.01
-        smooth = .true.
-    case (2)
-        dataname = "tas_med"
-        no_negatives = .false.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
-    case (3)
-        dataname = "pr_monsoon"
-        no_negatives = .true.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
-    case (4)
-        dataname = "pr_med"
-        no_negatives = .true.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
+        lowerbound = .true. ! .false. ! 
+        upperbound = .true. ! .false. ! 
+        lower = 0.0d0
+        upper = 0.0d0
     case default
         stop "ivar"
     end select
         
-    infile = trim(dataname)//"_mon.csv"
+    infile = trim(dataname)//".csv"
     open (1, file = trim(sourcepath)//trim(infile))
     read (1,'(a)') header
-    infile = trim(dataname)//"_day.csv"
-    open (2, file = trim(sourcepath)//trim(infile))
+
+    open (2, file = trim(sourcepath)//"YrMnDy.csv")
     read (2,'(a)') header
     
-    open (3, file = trim(interppath)//trim(methodname)//trim(dataname)//"_mon.csv")
-    open (4, file = trim(interppath)//trim(methodname)//trim(dataname)//"_day.csv")
-    open (10, file = trim(interppath)//trim(methodname)//trim(dataname)//"_debug.dat")
+    open (3, file = trim(interppath)//trim(dataname)//"_mon.csv")
+    open (4, file = trim(interppath)//trim(dataname)//"_day.csv")
 
     ! read monthly data to interpolate, and observed daily data for comparison
     nn = 0
@@ -127,15 +100,19 @@ do ivar = 1, nvars
         do m = 1, nm
             nn = nn + 1
             read (1,*) iy_mon(nn), im_mon(nn), yrmn(nn), ctrl_beg(nn), ctrl_mid(nn), nsubint(nn), ym(nn)
-            !write (10,'(3i5, f14.8, 2i8, i3, f12.5)') nn, iy_mon(nn), im_mon(nn),  &
-            !    yrmn(nn), ctrl_beg(nn), ctrl_mid(nn), nsubint(nn), ym(nn)
+            write (*,'(3i5, f14.8, 2i8, i3, f12.5)') nn, iy_mon(nn), im_mon(nn),  &
+                yrmn(nn), ctrl_beg(nn), ctrl_mid(nn), nsubint(nn), ym(nn)
         end do
     end do
     close (1)
+    
+    lower = 0.9 * ym
+    upper = 1.1 * ym
 
     do nn = 1, maxtarg
-        read (2,*) iy(nn), im(nn), id(nn), yrmndy(nn), y_obs(nn), step_x(nn), step_y(nn)
-        !write (10,'(4i5, f14.8, 3f12.5)') nn,iy(nn), im(nn), id(nn), yrmndy(nn), y_obs(nn), step_x(nn), step_y(nn)
+        read (2,*) iy(nn), im(nn), id(nn), yrmndy(nn)
+        yrmndy(nn) = yrmndy(nn) * 365.0d0
+        write (*,'(4i5, f14.8, 3f12.5)') nn,iy(nn), im(nn), id(nn), yrmndy(nn)
     end do
     ntargs = maxtarg
     close(2)
@@ -150,8 +127,9 @@ do ivar = 1, nvars
     
     ! mean-preserving interpolation
 
-    call mp_interp_harzallah(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-        spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+        lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
+        ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
     ! write out monthly time series
     write (3, '(a)') "Year, Month, YrMn, MonBeg, MidMonth, ndays, ym, ym_int"
