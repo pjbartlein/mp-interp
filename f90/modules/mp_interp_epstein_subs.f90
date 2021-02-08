@@ -108,7 +108,7 @@ subroutine mp_interp_epstein(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint
                 write (debug_unit,'("rmse: ", g12.4)') rmse
             end if
 
-            y_int(beg_subint:end_subint) = y_int_out(1:ns) !y_int(beg_subint:end_subint) = y_int_out(1:(ns - 1))
+            y_int(beg_subint:end_subint) = y_int_out(1:ns) 
         
         end if
 

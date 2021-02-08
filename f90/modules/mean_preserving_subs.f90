@@ -5,7 +5,7 @@ module mean_preserving_subs
 
     integer             :: debug_unit = 10
     integer             :: out_unit = 6
-    logical             :: debug_em = .true.
+    logical             :: debug_em = .false.
 
 contains
     
