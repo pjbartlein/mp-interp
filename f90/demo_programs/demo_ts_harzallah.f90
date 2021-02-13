@@ -67,8 +67,8 @@ integer(4)          :: npad                         ! number of months to pad at
 ! source and output pathss, modify as necessary
 sourcepath = "../../mp-interp/data/source/"
 interppath = "../../mp-interp/data/interp/"
-!sourcepath = "../../mp-interp-mac/data/source/"
-!interppath = "../../mp-interp-mac/data/interp/"
+!sourcepath = "../../mp-interp_mac/data/source/"
+!interppath = "../../mp-interp_mac/data/interp/"
 
 spline_case = 2 
 npad = 2

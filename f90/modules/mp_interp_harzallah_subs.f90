@@ -34,8 +34,8 @@ subroutine mp_interp_harzallah(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
     integer(4), intent(in)      :: max_nctrl_in                     ! max number of "inner" intervals in an "outer" interval
     integer(4), intent(in)      :: max_ntargs_in                    ! max number of subintervals in an "outer" interval 
     
-    real(8), intent(out)        :: y_int(ntargs)                    ! interpolated values
-    real(8), intent(out)        :: ym_int(nctrl)                    ! mean of interpolated values
+    real(8), intent(inout)        :: y_int(ntargs)                  ! interpolated values
+    real(8), intent(inout)        :: ym_int(nctrl)                  ! mean of interpolated values
                                                                     ! inner interval = e.g. months, outer interval = e.g. year
     real(8)             :: ym_in(max_nctrl_in), x_ctrl_in(max_nctrl_in)
     real(8)             :: x_targ_in(max_ntargs_in)
@@ -132,9 +132,17 @@ subroutine mp_interp_harzallah(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
                 call interp_stat(nctrl_in, ym_in, ym_int_out, rmse)
                 write (debug_unit,'("rmse: ", g12.4)') rmse
             end if
-        
-            !write (*, '(7i9)') n,beg_targ, beg_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out
-            y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(end_int - end_targ + 1))
+
+            y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))
+
+            if (debug_write) then
+                write (debug_unit, '(a)') "n,beg_targ, beg_int, end_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out"
+                write (debug_unit, '(8i9)') n,beg_targ, beg_int, end_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out
+                write (debug_unit, '(a)') "y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))"
+                write (debug_unit,'(10f10.6)') y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))
+                write (debug_unit, '(a)') "y_int(beg_int:end_int)"
+                write (debug_unit,'(10f10.6)') y_int(beg_int:end_int)
+            end if
                 
         end if
 

@@ -1,38 +1,41 @@
-module mp_interp_killworth_subs
-! subroutines for implementing the Killworth (1996) "adjusted-input linear" mean-preserving interpolation
+module mp_interp_harzallah_subs
+! subroutines for implementing the Harzallah (1995) "iterative spline" mean-preserving interpolation
     
-! Killworth, P.D. (1996) Time interpolation of forcing fields in ocean models
-! J. Physical Oceanography 26:136-143
+! Harzallah, A. (1995) The interpolation of data series using a constrained iterating technique
+! Monthly Weather Review 123:2251-2254.
+    
+! This implementation provides three versions of spline fitting.
     
 implicit none
 
     integer             :: debug_unit=10
-    logical             :: debug_write = .false.  
+    logical             :: debug_write = .true.  
     
 contains
-    
-subroutine mp_interp_killworth(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint, &
-    npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+
+subroutine mp_interp_harzallah(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint, &
+    spline_case, npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
     use mean_preserving_subs
 
     implicit none
     
     integer(4), intent(in)      :: nctrl, ntargs                    ! number of control and target points
-    integer(4), intent(in)      :: n_outer, n_inner                 ! number of outer and inner intervals (e.g. months, years)
+    integer(4), intent(in)      :: n_outer, n_inner                 ! number of outer and inner intervals (e.g. nyears, nmonths)
     real(8), intent(in)         :: ym(nctrl)                        ! input
     real(8), intent(in)         :: yfill                            ! fill value
-    real(8), intent(in)         :: x_ctrl(nctrl)                    ! x_cntrl (used for debugging)
+    real(8), intent(in)         :: x_ctrl(nctrl)                    ! x_cntrl 
     integer(4), intent(in)      :: nsubint(nctrl)                   ! number of subintervals
+    integer(4), intent(in)      :: spline_case                      ! selects spline-fitting procedure
     integer(4), intent(in)      :: npad                             ! number of padding each end
     logical, intent(in)         :: no_negatives, match_mean         ! logical control variables
     real(8), intent(in)         :: tol                              ! tolerance for enforce_mean()
-    real(8), intent(in)         :: x_targ(ntargs)                   ! x_targ (for debuggin)
+    real(8), intent(in)         :: x_targ(ntargs)                   ! x_targ
     integer(4), intent(in)      :: max_nctrl_in                     ! max number of "inner" intervals in an "outer" interval
     integer(4), intent(in)      :: max_ntargs_in                    ! max number of subintervals in an "outer" interval 
     
-    real(8), intent(inout)        :: y_int(ntargs)                  ! interpolated values
-    real(8), intent(inout)        :: ym_int(nctrl)                  ! mean of interpolated values
+    real(8), intent(out)        :: y_int(ntargs)                    ! interpolated values
+    real(8), intent(out)        :: ym_int(nctrl)                    ! mean of interpolated values
                                                                     ! inner interval = e.g. months, outer interval = e.g. year
     real(8)             :: ym_in(max_nctrl_in), x_ctrl_in(max_nctrl_in)
     real(8)             :: x_targ_in(max_ntargs_in)
@@ -44,8 +47,8 @@ subroutine mp_interp_killworth(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
     integer(4)          :: n, nn
     integer(4)          :: beg_inner, end_inner, beg_ctrl, end_ctrl, nctrl_in, beg_targ, end_targ, ntarg_in, beg_int, end_int, nint_out
     
-    if (debug_write) write (debug_unit,'(a)') "In mp_interp_killworth()"
-    
+    if (debug_write) write (debug_unit,'(a)') "In mp_interp_harzallah()"
+
     ! loop over number of years
     nn = 1 ! starting pseudo-daily value
     do n = 1, n_outer
@@ -117,7 +120,7 @@ subroutine mp_interp_killworth(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
         
             if (debug_write) write (debug_unit, '("call hz_int(), interval ", i8)') n
             
-            call ainv_int(nctrl_in, ym_in, yfill, x_ctrl_in, nsubint_in, ntarg_in, x_targ_in, y_int_out, ym_int_out)
+            call hz_int(spline_case, nctrl_in, ym_in, yfill, x_ctrl_in, nsubint_in, ntarg_in, x_targ_in, y_int_out, ym_int_out)
             
             if (debug_write) write (debug_unit, '(a)') "back from hz_int()"
         
@@ -130,6 +133,9 @@ subroutine mp_interp_killworth(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
                 write (debug_unit,'("rmse: ", g12.4)') rmse
             end if
         
+            !!write (*, '(7i9)') n,beg_targ, beg_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out
+            !y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(end_int - end_targ + 1))
+            
             y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))
 
             if (debug_write) then
@@ -167,20 +173,17 @@ subroutine mp_interp_killworth(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubi
     if (debug_write) write (debug_unit,'(a)') "y_int_after_enforce_mean"
     if (debug_write) write (debug_unit,'(10f8.2)') y_int
     if (debug_write) write (debug_unit,'(12f8.3)') ym_int
-
     
-end subroutine mp_interp_killworth
+end subroutine mp_interp_harzallah
     
-subroutine ainv_int(nctrl, ym, ymiss, x_ctrl, nsubint, ntargs, x_targ, y_int, ym_int)
-! manages Killworth-style "A-inv" pseudo-daily interpolation
+subroutine hz_int(spline_case, nctrl, ym, ymiss, x_ctrl, nsubint, ntargs, x_targ, y_int, ym_int)
+! manages Harzalla spline pseudo-daily interpolation
 
     use mean_preserving_subs
-    use lapack95    ! Intel MKL on Windows
-    !use f95_lapack  ! https://masuday.github.io/fortran_tutorial/external.html#blas-and-lapack + lapack from Homebrew on mac
     
     implicit none
     
-    integer(4), intent(in)          :: nctrl, ntargs
+    integer(4), intent(in)          :: nctrl, ntargs, spline_case
     integer(4), intent(in)          :: nsubint(nctrl)                   ! interval lengths
     real(8), intent(in)             :: ym(nctrl)                        ! input y
     real(8), intent(in)             :: ymiss                            ! missing / fill value
@@ -190,95 +193,107 @@ subroutine ainv_int(nctrl, ym, ymiss, x_ctrl, nsubint, ntargs, x_targ, y_int, ym
     real(8), intent(out)            :: ym_int(nctrl)                    ! means of interpolated values
     
     ! local variables
-    real(8)                         :: A(nctrl, nctrl)                  ! matrix A
-    real(8)                         :: A_inv(nctrl,nctrl)
-    real(8)                         :: e(nctrl), f(nctrl), g(nctrl)     ! A elements
-    real(8)                         :: am_int(nctrl), ymp(nctrl)
-    integer(4)                      :: ipiv(nctrl)
-    real(8)                         :: work(nctrl)
+    integer(4)                      :: ibcbeg = 0, ibcend = 0           ! boundary condition flags
+    real(8)                         :: ybcbeg = 0.0d0, ybcend = 0.0d0   ! boundary conditions
+    real(8)                         :: ypp(nctrl)                       ! derivatives
+    real(8)                         :: ypval(ntargs), yppval(ntargs)    ! first and second derivatives
     
-    integer(4)                      :: m, m1, info
+    integer(4), parameter           :: max_iter = 16
+    real(8)                         :: tol = 0.01                       ! tolerance
+    real(8)                         :: resid(nctrl)
+    real(8)                         :: ym_mat(max_iter + 1, nctrl)       ! matrix
+    real(8)                         :: y_int_mat(max_iter, ntargs)
     
-    if (debug_write) write (debug_unit, '(a)') "In ainv_interp"
-    if (debug_write) write (debug_unit, '(12f9.2)') ym
-    if (debug_write) write (debug_unit, '(12f9.2)') x_ctrl
-    if (debug_write) write (debug_unit, '(a)') "x_targ"
-    if (debug_write) write (debug_unit, '(12f9.2)') x_targ
+    integer(4)                      :: i, k
+    integer(4)                      :: np = 3, err
     
-    call dayinterp(nctrl, ntargs, nsubint, ym, y_int)
-    call interval_mean(nctrl, nsubint, ntargs, y_int, ymiss, ym_int)
+    if (debug_write) write (debug_unit, '(a)') "In hz_interp ============="
+    if (debug_write) write (debug_unit, '(a)') "nctrl, ntargs, spline_case"
+    if (debug_write) write (debug_unit, *) nctrl, ntargs, spline_case
+    if (debug_write) write (debug_unit, '(a)') "ym"
+    if (debug_write) write (debug_unit, '(16f16.9)') ym
+    if (debug_write) write (debug_unit, '(a)') "x_ctrl"
+    if (debug_write) write (debug_unit, '(16f16.9)') x_ctrl
+    if (debug_write) write (debug_unit, '(a)') "x_targ(1), x_targ(ntargs)"
+    if (debug_write) write (debug_unit, '(16f16.9)') x_targ(1), x_targ(ntargs)
     
-    if (debug_write) write (debug_unit, '(a)') "ym, ym_int, ym_int - ym"
-    if (debug_write) write (debug_unit,'(12f9.4)') ym
-    if (debug_write) write (debug_unit,'(12f9.4)') ym_int
-    if (debug_write) write (debug_unit,'(12f9.4)') ym_int - ym
+    ym_mat = 0.0d0; y_int_mat = 0.0d0; ypp = 0.0d0
+    ym_mat(1, :) = ym(:)
     
-    ! elements
-    e = 0.0d0; f = 0.0d0; g = 0.0d0
-        e(1) = nsubint(1) / (4.0d0 * (nsubint(nctrl) + nsubint(1)))
-    do m = 2, nctrl
-        e(m) = nsubint(m) / (4.0d0 * (nsubint(m - 1) + nsubint(m)))
-    end do
-        g(nctrl) = nsubint(nctrl) / (4.0d0 * (nsubint(nctrl) + nsubint(1)))
-    do m = 1, nctrl - 1
-        g(m) = nsubint(m) / (4.0d0 * (nsubint(m) + nsubint(m+1)))
-    end do
-    do m = 1, nctrl
-        f(m) = 1.0d0 - e(m) - g(m)
-    end do
-    if (debug_write) write (debug_unit, '(a)') "e, f, g"
-    if (debug_write) write (debug_unit, '(12f9.4)') e, f, g
+    do k = 1, max_iter
 
-    ! define A
-    A = 0.0d0
-    do m = 2, nctrl
-        A(m, m - 1) = e(m)
-        A(m - 1, m) = g(m - 1)
-        A(m, m) = f(m)
+        if (debug_write) write (debug_unit, '("ym_mat", i4)') k
+        if (debug_write) write (debug_unit,'(16f16.9)') ym_mat(k, :)
+        if (debug_write) write (debug_unit,*) spline_case
+        
+        select case(spline_case)
+            case (1)
+                ! Burkhardt
+                call spline_cubic_set ( nctrl, x_ctrl, ym_mat(k, :), ibcbeg, ybcbeg, ibcend, ybcend, ypp )
+                if (debug_write) write (debug_unit,'(16g16.8)') ypp
+                do i = 1, ntargs
+                    call spline_cubic_val ( nctrl, x_ctrl, ym_mat(k, :), ypp, x_targ(i), y_int_mat(k,i), ypval, yppval )
+                    !if (debug_write) write (debug_unit,'(i4, 4f16.8)') i, x_targ(i), y_int_mat(k,i) !, ypval, yppval
+                end do     
+            case (2)
+                ! Burkhardt
+                call spline_pchip_set ( nctrl, x_ctrl, ym_mat(k, :), ypp )
+                if (debug_write) write (debug_unit,'(a)') "ypp"
+                if (debug_write) write (debug_unit,'(16f16.8)') ypp      
+                call spline_pchip_val ( nctrl, x_ctrl, ym_mat(k, :), ypp, ntargs, x_targ, y_int_mat(k, :) )
+            case (3)
+                ! Akima ACM 697   
+                call uvip3p (np, nctrl, x_ctrl, ym_mat(k, :), ntargs, x_targ, y_int_mat(k, :), err)
+            case default
+                stop "spline_case"
+        end select
+        
+        !if (debug_write) write (debug_unit, '("y int_mat", i4)') k
+        !if (debug_write) write (debug_unit,'(10f16.9)') y_int_mat(k, :)
+        
+        ! interval mean values
+        if (debug_write) write (debug_unit, '("calling interval_mean() from hz_int(), k, nctrl, ntargs: ", 3i8)') k, nctrl, ntargs
+        call interval_mean(nctrl, nsubint, ntargs, y_int_mat(k, :), ymiss, ym_int)
+        if (debug_write) write (debug_unit, '("ym_int", i4)') k
+        if (debug_write) write (debug_unit,'(16f16.9)') ym_int
+     
+        ! residuals
+        resid = ym_mat(k, :) - ym_int
+        if (debug_write) write (debug_unit, '("residuals", i4)') k
+        if (debug_write) write (debug_unit,'(16f16.9)') resid
+              
+        if (debug_write) write (debug_unit,'("max resid: ", g16.9)') maxval(resid)
+        if (maxval(resid) .lt. tol) exit
+        
+        ym_mat(k + 1, :) = resid(:)
+        !if (debug_write) write (debug_unit, '("ym_mat new", i4)') k
+        !if (debug_write) write (debug_unit,'(16f16.9)') ym_mat(k+1, :)
+     
     end do
-        A(1, 1) = f(1)
-        A(nctrl, 1) = g(nctrl)
-        A(1, nctrl) = e(1)
-    if (debug_write) write (debug_unit, '(a)') "A"
-    do m1 = 1, nctrl
-        if (debug_write) write (debug_unit, '(12f9.4)') (A(m1, m), m = 1, nctrl)
+    
+    if (debug_write) write (debug_unit,'("k (out): ", i4)') k
+    
+    ! sum over iterations  -- replace by updating?
+    y_int = 0.0d0
+    do k = 1, max_iter
+        do i = 1, ntargs
+            y_int(i) = y_int(i) + y_int_mat(k, i)
+        end do
     end do
     
-    am_int = matmul(A, ym)
-    if (debug_write) write (debug_unit, '(a)') "am_int"
-    if (debug_write) write (debug_unit, '(12f9.4)') am_int
+    if (debug_write) then
+        do i = 1, ntargs
+            write (debug_unit, '(i4, 18f16.9)') i, x_targ(i), y_int(i), (y_int_mat(k, i), k = 1, max_iter)
+        end do
+    end if
     
-    ! inverse
-    A_inv = A
-    call DGETRF(nctrl, nctrl, A_inv, nctrl, ipiv, info)
-    call DGETRI(nctrl, A_inv, nctrl, ipiv, work, nctrl, info)
-    
-    if (debug_write) write (debug_unit, '(a)') "A_inv"
-    do m1 = 1, nctrl
-        if (debug_write) write (debug_unit, '(12f9.4)') (A_inv(m1, m), m = 1, nctrl)
-    end do
-    
-    !! test the inverse
-    !Id = 0.0d0
-    !Id = matmul(A_inv, A)
-    !if (debug_write) write (debug_unit, '(a)') "I"
-    !do m1 = 1, nctrl
-    !    if (debug_write) write (debug_unit, '(12f9.4)') (Id(m1, m), m = 1, nctrl)
-    !end do
-    
-    ymp = matmul(A_inv, ym)
-    if (debug_write) write (debug_unit, '(a)') "ymp"
-    if (debug_write) write (debug_unit, '(12f9.4)') ymp
-    
-    call dayinterp(nctrl, ntargs, nsubint, ymp, y_int)
+    if (debug_write) write (debug_unit, '("calling interval_mean() from hz_int() end, nctrl, ntargs: ", 3i8)') nctrl, ntargs    
     call interval_mean(nctrl, nsubint, ntargs, y_int, ymiss, ym_int)
+
+    if (debug_write) write (debug_unit,'(16f10.2)') ym
+    if (debug_write) write (debug_unit,'(16f10.2)') ym_int
+    if (debug_write) write (debug_unit,'(16f10.5)') ym_int - ym
     
-    if (debug_write) write (debug_unit, '(a)') "ym, ymp_int, ymp_int - ym"
-    if (debug_write) write (debug_unit,'(12f9.4)') ym
-    if (debug_write) write (debug_unit,'(12f9.4)') ym_int
-    if (debug_write) write (debug_unit,'(12f9.4)') ym_int - ym
-    
-end subroutine ainv_int     
-    
-    
-end module mp_interp_killworth_subs
+end subroutine hz_int
+
+end module mp_interp_harzallah_subs

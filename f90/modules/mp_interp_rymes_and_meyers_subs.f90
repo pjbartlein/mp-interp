@@ -1,4 +1,4 @@
-module mp_interp_rymes_and_meyer_subs
+module mp_interp_rymes_and_meyers_subs
 ! subroutines for implementing the Rymes abd Meyer (2001) "iterative smoothing" mean-preserving interpolation
     
 ! Rymes, M.D. and D.R. Meyers (2001) Mean preserving alogrithm for smoothing interpolating averaged data.
@@ -11,7 +11,7 @@ implicit none
     
 contains
 
-subroutine mp_interp_rymes_and_meyer(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint,  &
+subroutine mp_interp_rymes_and_meyers(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint,  &
     lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
     ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
@@ -34,8 +34,8 @@ subroutine mp_interp_rymes_and_meyer(n_outer, n_inner, nctrl, ym, yfill, x_ctrl,
     integer(4), intent(in)      :: max_nctrl_in                     ! max number of "inner" intervals in an "outer" interval
     integer(4), intent(in)      :: max_ntargs_in                    ! max number of subintervals in an "outer" interval 
     
-    real(8), intent(out)        :: y_int(ntargs)                    ! interpolated values
-    real(8), intent(out)        :: ym_int(nctrl)                    ! mean of interpolated values
+    real(8), intent(inout)        :: y_int(ntargs)                    ! interpolated values
+    real(8), intent(inout)        :: ym_int(nctrl)                    ! mean of interpolated values
                                                                     ! inner interval = e.g. months, outer interval = e.g. year
     
     integer(4), parameter       :: maxit = 50                       ! max number of iterations
@@ -141,8 +141,16 @@ subroutine mp_interp_rymes_and_meyer(n_outer, n_inner, nctrl, ym, yfill, x_ctrl,
                 write (debug_unit,'("rmse: ", g12.4)') rmse
             end if
         
-            !write (*, '(7i9)') n,beg_targ, beg_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out
-            y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(end_int - end_targ + 1))
+            y_int(beg_int:end_int) = y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))
+
+            if (debug_write) then
+                write (debug_unit, '(a)') "n,beg_targ, beg_int, end_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out"
+                write (debug_unit, '(8i9)') n,beg_targ, beg_int, end_int, nint_out, beg_int - beg_targ + 1, beg_int - beg_targ + nint_out
+                write (debug_unit, '(a)') "y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))"
+                write (debug_unit,'(10f10.6)') y_int_out((beg_int - beg_targ + 1):(beg_int - beg_targ + nint_out))
+                write (debug_unit, '(a)') "y_int(beg_int:end_int)"
+                write (debug_unit,'(10f10.6)') y_int(beg_int:end_int)
+            end if
                 
         end if
  
@@ -171,7 +179,7 @@ subroutine mp_interp_rymes_and_meyer(n_outer, n_inner, nctrl, ym, yfill, x_ctrl,
     if (debug_write) write (debug_unit,'(10f8.2)') y_int
     if (debug_write) write (debug_unit,'(12f8.3)') ym_int
     
-end subroutine mp_interp_rymes_and_meyer
+end subroutine mp_interp_rymes_and_meyers
     
     
 subroutine rm_int(nctrl, ym, ymiss, x_ctrl, nsubint, lowerbound, lower, upperbound, upper, &
@@ -390,4 +398,4 @@ subroutine rm_int(nctrl, ym, ymiss, x_ctrl, nsubint, lowerbound, lower, upperbou
    
 end subroutine rm_int
     
-end module mp_interp_rymes_and_meyer_subs
+end module mp_interp_rymes_and_meyers_subs

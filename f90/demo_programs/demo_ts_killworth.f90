@@ -57,7 +57,7 @@ integer(4)          :: npad                         ! number of months to pad at
 sourcepath = "../../mp-interp/data/source/"
 interppath = "../../mp-interp/data/interp/"
 !sourcepath = "../../mp-interp_mac/data/source/"
-!interppath = "../../mp-interp_mac/data/interp/""
+!interppath = "../../mp-interp_mac/data/interp/"
 
 npad = 1
 max_nctrl_in = 12 + 2 * npad        ! include padding
@@ -95,6 +95,7 @@ do ivar = 1, nvars
     end select
         
     infile = trim(dataname)//"_mon.csv"
+!    write (*, '(a)') trim(sourcepath)//trim(infile)
     open (1, file = trim(sourcepath)//trim(infile))
     read (1,'(a)') header
     infile = trim(dataname)//"_day.csv"

@@ -1,8 +1,8 @@
-program demo_ts_rymes_and_meyer_01
+program demo_ts_rymes_and_meyers_01
 ! demonstrates Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation
     
 use mean_preserving_subs
-use mp_interp_rymes_and_meyer_subs
+use mp_interp_rymes_and_meyers_subs
     
 implicit none
 
@@ -114,6 +114,7 @@ do ivar = 1, nvars
     end select
         
     infile = trim(dataname)//"_mon.csv"
+    write (*, '(a)') trim(sourcepath)//trim(infile)
     open (1, file = trim(sourcepath)//trim(infile))
     read (1,'(a)') header
     infile = trim(dataname)//"_day.csv"
@@ -153,7 +154,7 @@ do ivar = 1, nvars
     
     ! mean-preserving interpolation
 
-    call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+    call mp_interp_rymes_and_meyers(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, &
         lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
         ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 

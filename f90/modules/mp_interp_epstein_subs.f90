@@ -26,7 +26,7 @@ subroutine mp_interp_epstein(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint
     integer(4), intent(in)      :: nsubint(nctrl)                   ! number of subintervals
     logical, intent(in)         :: smooth, no_negatives, match_mean ! logical control variables
     real(8), intent(in)         :: tol                              ! tolerance for enforce_mean()
-    real(8), intent(in)         :: x_targ(ntargs)                   ! x_targ
+    real(8), intent(in)         :: x_targ(ntargs)                   ! x_targ (used for debugging)
     integer(4), intent(in)      :: max_nctrl_in                     ! max number of "inner" intervals in an "outer" interval
     integer(4), intent(in)      :: max_ntargs_in                    ! max number of subintervals in an "outer" interval 
     
@@ -39,7 +39,7 @@ subroutine mp_interp_epstein(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint
     real(8)                     :: y_int_temp(ntargs)
     
     real(8)             :: ym_in(max_nctrl_in), x_ctrl_in(max_nctrl_in)
-    real(8)             :: x_targ_in(max_ntargs_in)
+!    real(8)             :: x_targ_in(max_ntargs_in)
     real(8)             :: y_int_out(max_ntargs_in), ym_int_out(max_nctrl_in)
     real(8)             :: rmse
     
