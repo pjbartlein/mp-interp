@@ -2,7 +2,7 @@ program test_rymes_and_meyer_01
 ! tests Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation
     
 use mean_preserving_subs
-use mp_interp_rymes_and_meyer_subs
+use mp_interp_rymes_and_meyers_subs
     
 implicit none
 
@@ -43,7 +43,7 @@ integer(4)          :: max_nctrl_in                 ! maximum number of inner in
 integer(4)          :: max_ntargs_in                ! maximum number of subintervals (days) in an outer interval (years)
 
 character(1)        :: header
-character(16)       :: methodname = "rymes_and_meyer_"
+character(16)       :: methodname = "rymes_and_meyers_"
 character(1024)     :: sourcepath, interppath, dataname, infile
 
 real(4)             :: total_secs, loop_secs
@@ -72,12 +72,12 @@ do ivar = 1, nvars
     
     select case(ivar)
     case (1)
-        dataname = "rymes-and-meyers_fig05"
+        dataname = "rymes-and-meyers_fig04"
         no_negatives = .false.
         match_mean = .true.
         tol = 0.01
-        lowerbound = .true. ! .false. ! 
-        upperbound = .true. ! .false. ! 
+        lowerbound = .false. ! .true. ! 
+        upperbound = .false. ! .true. ! 
         lower = 0.0d0
         upper = 0.0d0
     case default
@@ -127,7 +127,7 @@ do ivar = 1, nvars
     
     ! mean-preserving interpolation
 
-    call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+    call mp_interp_rymes_and_meyers(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
         lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
         ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
