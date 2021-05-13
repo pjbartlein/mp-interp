@@ -175,9 +175,8 @@ subroutine ainv_int(nctrl, ym, ymiss, x_ctrl, nsubint, ntargs, x_targ, y_int, ym
 ! manages Killworth-style "A-inv" pseudo-daily interpolation
 
     use pseudo_daily_interp_subs
-    use lapack95    ! Intel MKL on Windows
-    !use f95_lapack  ! https://masuday.github.io/fortran_tutorial/external.html#blas-and-lapack + lapack from Homebrew on mac
-    
+!    use lapack95    ! Intel MKL on Windows
+!    macos: brew install lapack, then set include and library paths
     implicit none
     
     integer(4), intent(in)          :: nctrl, ntargs

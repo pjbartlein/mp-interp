@@ -56,8 +56,6 @@ logical             :: smooth = .true.              ! smooth across outer interv
 ! source and output pathss, modify as necessary
 sourcepath = "../../mp-interp/data/source/"
 interppath = "../../mp-interp/data/interp/"
-!sourcepath = "../../mp-interp_mac/data/source/"
-!interppath = "../../mp-interp_mac/data/interp/"
 
 total_secs = secnds(0.0)
 

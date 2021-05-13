@@ -14,7 +14,7 @@ implicit none
 ! monsoon-climate grid point from NCEP-DOEv2 Reanalysis II data set are used to illusatrate the approach and graphically 
 ! compare the results to "observed" (i.e. reanalysis) daily data.
 
-integer(4), parameter  :: nvars = 8                 ! number of demonstration time series
+integer(4), parameter  :: nvars = 4                 ! number of demonstration time series
 integer(4), parameter  :: ny = 20, nm = 12          ! number of years and months in a year
 integer(4), parameter  :: nctrl = ny * nm           ! total number of control points
 integer(4), parameter  :: maxtarg = 7305            ! total number of days
@@ -63,12 +63,8 @@ integer(4)          :: npad                         ! number of months to pad at
 !   https://people.sc.fsu.edu/~jburkardt/f_src/spline/spline.html), last accessed 8 Dec 2020)
 
 ! source and output pathss, modify as necessary
-!sourcepath = "../../mp-interp/data/source/"
-!interppath = "../../mp-interp/data/interp/"
-sourcepath = "e:\Projects\MeanPreserving\data\work11\"
-interppath = trim(sourcepath)
-!sourcepath = "../../mp-interp_mac/data/source/"
-!interppath = "../../mp-interp_mac/data/interp/"
+sourcepath = "../../mp-interp/data/source/"
+interppath = "../../mp-interp/data/interp/"
 
 spline_case = 2 
 npad = 2
@@ -95,37 +91,13 @@ do ivar = 1, nvars ! 1, nvars
         tol = 0.01
         smooth = .true.
     case (3)
-        dataname = "pr_dedrz_monsoon"
+        dataname = "pr_monsoon"
         no_negatives = .true.
         match_mean = .true.
         tol = 0.01
         smooth = .true.
     case (4)
-        dataname = "pr_dedrz_med"
-        no_negatives = .true.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
-     case (5)
-        dataname = "tas_ssa"
-        no_negatives = .false.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
-    case (6)
-        dataname = "pr_dedrz_ssa"
-        no_negatives = .true.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
-    case (7)
-        dataname = "tas_midc"
-        no_negatives = .false.
-        match_mean = .true.
-        tol = 0.01
-        smooth = .true.
-    case (8)
-        dataname = "pr_dedrz_midc"
+        dataname = "pr_med"
         no_negatives = .true.
         match_mean = .true.
         tol = 0.01

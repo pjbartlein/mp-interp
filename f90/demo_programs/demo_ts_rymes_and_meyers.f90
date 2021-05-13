@@ -59,8 +59,6 @@ integer(4)          :: npad                         ! number of months to pad at
 ! source and output pathss, modify as necessary
 sourcepath = "../../mp-interp/data/source/"
 interppath = "../../mp-interp/data/interp/"
-!sourcepath = "../../mp-interp_mac/data/source/"
-!interppath = "../../mp-interp_mac/data/interp/"
 
 npad = 2
 max_nctrl_in = 12 + 2 * npad        ! include padding
