@@ -1,7 +1,7 @@
 program demo_ts_rymes_and_meyers_01
 ! demonstrates Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_rymes_and_meyers_subs
     
 implicit none

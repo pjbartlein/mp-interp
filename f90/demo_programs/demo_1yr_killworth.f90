@@ -1,7 +1,7 @@
 program demo_1yr_killworth_01
 ! demonstrates KIllworth (1996) adjusted-input linear interpolation -- single year of different data sets
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_killworth_subs
     
 implicit none

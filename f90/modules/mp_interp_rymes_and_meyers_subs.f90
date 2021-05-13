@@ -15,7 +15,7 @@ subroutine mp_interp_rymes_and_meyers(n_outer, n_inner, nctrl, ym, yfill, x_ctrl
     lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
     ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
 
     implicit none
     
@@ -187,7 +187,7 @@ subroutine rm_int(nctrl, ym, ymiss, x_ctrl, nsubint, lowerbound, lower, upperbou
 ! pseudo-daily interpolated values
 ! From Rymes, M.D. and D.R. Myers, 2001. Solar Energy 71:225-231
     
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
 
     implicit none
 

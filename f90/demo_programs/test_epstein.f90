@@ -1,7 +1,7 @@
 program test_epstein
 ! tests Epstein (1991) harmonic pseudo-daily interpolation
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_epstein_subs
     
 implicit none
@@ -114,7 +114,7 @@ do ivar = 1, nvars
     ! mean-preserving interpolation
 
     call mp_interp_epstein(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, &
-        smooth, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+        smooth, no_negatives, match_mean, tol, ntargs, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
     ! write out monthly time series
     write (3, '(a)') "Year, Month, YrMn, MonBeg, MidMonth, ndays, ym, ym_int"

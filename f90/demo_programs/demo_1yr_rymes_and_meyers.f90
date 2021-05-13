@@ -1,8 +1,8 @@
 program demo_1yr_rymes_and_meyer_01
 ! demonstrates Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation  -- single year of different data sets
     
-use mean_preserving_subs
-use mp_interp_rymes_and_meyer_subs
+use pseudo_daily_interp_subs
+use mp_interp_rymes_and_meyers_subs
     
 implicit none
 
@@ -76,7 +76,7 @@ upperbound = .false.
 lower = 0.0d0 / 0.0d0
 upper = 0.0d0 / 0.0d0
 
-call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+call mp_interp_rymes_and_meyers(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
     lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
     ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
@@ -102,7 +102,7 @@ upperbound = .false.
 lower = 0.0d0 / 0.0d0
 upper = 0.0d0 / 0.0d0
 
-call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+call mp_interp_rymes_and_meyers(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
     lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
     ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
@@ -128,7 +128,7 @@ upperbound = .false.
 lower = 0.0d0 
 upper = 0.0d0 / 0.0d0
 
-call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+call mp_interp_rymes_and_meyers(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
     lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
     ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
@@ -155,7 +155,7 @@ upperbound = .false.
 lower = 0.0d0 
 upper = 0.0d0 / 0.0d0
 
-call mp_interp_rymes_and_meyer(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
+call mp_interp_rymes_and_meyers(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
     lowerbound, lower, upperbound, upper, npad, no_negatives, match_mean, tol, & 
     ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 

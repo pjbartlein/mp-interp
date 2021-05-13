@@ -1,7 +1,7 @@
 program test_harzallah_01
 ! tests Harzallah (1995) iterative-spline pseudo-daily interpolation
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_harzallah_subs
     
 implicit none

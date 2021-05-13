@@ -1,7 +1,7 @@
 program test_killworth_01
 ! tests KIllworth (1996) adjusted-input linear interpolation
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_killworth_subs
     
 implicit none

@@ -1,8 +1,15 @@
 module mp_interp_epstein_subs
-! subroutines for implementing the Epstein (1991) "harmonic" mean-preserving interpolation
+! Subroutines for implementing the Epstein (1991) "harmonic" mean-preserving interpolation
     
 ! Epstein, E.S. (1991), On obtaining daily climatological values from monthly means,
 ! J. Climate 4:365-368
+
+! These subroutines are part of PaleoCalAdjust v1.1:
+!   - see P.J. Bartlein & S.L. Shafer (2019) Paleo calendar-effect adjustments in time-slice and transient
+!         climate-model simulations (PaleoCalAdjust v1.0): impact and strategies for data analysis,
+!         Geoscientific Model Development, 12:3889–3913, doi: 10.5194/gmd-12-3889-2019
+!   - available from GitHub:  https://github.com/pjbartlein/PaleoCalAdjust or Zenodo:  https://doi.org/10.5281/zenodo.1478824
+!   - see also:  https://github.com/pjbartlein/mp-interp (mean-preserving interpolation)
     
 implicit none
 
@@ -12,9 +19,9 @@ implicit none
 contains
     
 subroutine mp_interp_epstein(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint, &
-    smooth, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    smooth, no_negatives, match_mean, tol, ntargs, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
 
     implicit none
     
@@ -26,25 +33,26 @@ subroutine mp_interp_epstein(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint
     integer(4), intent(in)      :: nsubint(nctrl)                   ! number of subintervals
     logical, intent(in)         :: smooth, no_negatives, match_mean ! logical control variables
     real(8), intent(in)         :: tol                              ! tolerance for enforce_mean()
-    real(8), intent(in)         :: x_targ(ntargs)                   ! x_targ (used for debugging)
     integer(4), intent(in)      :: max_nctrl_in                     ! max number of "inner" intervals in an "outer" interval
     integer(4), intent(in)      :: max_ntargs_in                    ! max number of subintervals in an "outer" interval 
     
-    real(8), intent(out)        :: y_int(ntargs)                    ! interpolated values
-    real(8), intent(out)        :: ym_int(nctrl)                    ! mean of interpolated values
-                                                                    ! inner interval = e.g. months, outer interval = e.g. year
+    real(8), intent(inout)      :: y_int(ntargs)                    ! interpolated values
+    real(8), intent(inout)      :: ym_int(nctrl)                    ! mean of interpolated values
+
+    ! local variables
+
+    ! smoothing window variables
     integer(4), parameter       :: nw = 21
     real(8)                     :: pi, x, wgt(nw), wsum
-
     real(8)                     :: y_int_temp(ntargs)
     
+    ! local variables passed to hm_int() subroutine
     real(8)             :: ym_in(max_nctrl_in), x_ctrl_in(max_nctrl_in)
-!    real(8)             :: x_targ_in(max_ntargs_in)
     real(8)             :: y_int_out(max_ntargs_in), ym_int_out(max_nctrl_in)
     real(8)             :: rmse
-    
     integer(4)          :: nsubint_in(max_nctrl_in)
     
+    ! indices
     integer(4)          :: mm, n, ns, i, ii, iii
     integer(4)          :: nn, beg_inner, end_inner, beg_subint, end_subint, n_inner_in, ntargs_out
     integer(4)          :: js, j, jj, jjj
@@ -85,7 +93,7 @@ subroutine mp_interp_epstein(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint
         if (debug_write) write (debug_unit, '(16f8.2)') x_ctrl_in(1:n_inner_in)
         if (debug_write) write (debug_unit, '(16i8)') nsubint_in(1:n_inner_in)
         
-        ! if any missing values, set output to yfill, otherwise call hz_int()
+        ! if any missing values, set output to yfill, otherwise call hm_int()
         if (any(ym_in(1:n_inner_in) .eq. yfill)) then
         
             if (debug_write) write (debug_unit, '("missing values, interval ", i8)') n
@@ -207,7 +215,7 @@ subroutine hm_int(nctrl, ym, ymiss, nsubint, no_negatives, ntargs, y_int, ym_int
 ! Epstein 1991 harmonic mean-preserving interpolation
 ! Note:  this approach is implicitly periodic
 
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
     
     implicit none
 
@@ -236,7 +244,7 @@ end subroutine hm_int
     
 subroutine hsubint(n_inner, ns, ym, nsubint, no_negatives, ydh)
 
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
 
     implicit none
     
@@ -264,9 +272,10 @@ subroutine hsubint(n_inner, ns, ym, nsubint, no_negatives, ydh)
 end subroutine hsubint
 
 subroutine harmonic_coeffs(n_inner,y,a,b)
+
 ! Calculates a's and b's of an "adjusted" harmonic fit to monthly values of a variable,
-! which preserves e.g. the monthly (and annual) mean values by interpolated e.g., daily values
-! adapted from Epstein (1991, On obtaining daily climatological values from monthly means,
+! which preserves e.g. the monthly (and annual) mean values by interpolated e.g., daily values.
+! Adapted from Epstein (1991, On obtaining daily climatological values from monthly means,
 ! J. Climate 4:365-368).
 
     implicit none
@@ -331,8 +340,10 @@ end subroutine harmonic_coeffs
 
 
 subroutine ydhat(n_inner,ns,nsubint,a,b,yhat)
-! Calculates/interpolates pseudo-daily values of variable using the a's and b's from harmonic_coeffs()
-! adapted from Epstein (1991, On obtaining daily climatological values from monthly means,
+
+! Calculates a's and b's of an "adjusted" harmonic fit to monthly values of a variable,
+! which preserves e.g. the monthly (and annual) mean values by interpolated e.g., daily values.
+! Adapted from Epstein (1991, On obtaining daily climatological values from monthly means,
 ! J. Climate 4:365-368).
 
     implicit none

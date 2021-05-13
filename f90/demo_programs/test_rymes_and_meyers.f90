@@ -1,7 +1,7 @@
 program test_rymes_and_meyer_01
 ! tests Rhymes and Meyer (2001) iterative smoothing pseudo-daily interpolation
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_rymes_and_meyers_subs
     
 implicit none
@@ -72,7 +72,7 @@ do ivar = 1, nvars
     
     select case(ivar)
     case (1)
-        dataname = "rymes-and-meyers_fig04"
+        dataname = "rymes-and-meyers_fig05"
         no_negatives = .false.
         match_mean = .true.
         tol = 0.01

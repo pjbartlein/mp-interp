@@ -1,7 +1,7 @@
 program demo_ts_killworth_01
 ! demonstrates KIllworth (1996) adjusted-input linear interpolation
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_killworth_subs
     
 implicit none
@@ -137,7 +137,6 @@ do ivar = 1, nvars
 
     call mp_interp_killworth(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
         npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
-
 
     ! write out monthly time series
     write (3, '(a)') "Year, Month, YrMn, MonBeg, MidMonth, ndays, ym, ym_int"

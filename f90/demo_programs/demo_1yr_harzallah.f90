@@ -1,7 +1,7 @@
 program demo_1yr_harzallah_01
 ! demonstrates Harzallah (1995) iterative-spline pseudo-daily interpolation -- single year of different data sets
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_harzallah_subs
     
 implicit none

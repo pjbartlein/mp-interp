@@ -31,6 +31,8 @@ The Harzallah (1995) and Killworth (1996) approaches require some external (to t
 
 KIllworth's (1996) method requires a matrix-inversion subroutine.  Here the functions DGETRF(), and DGETRI() from the lapack95 library were used.  
 
+The modules `mp_interp_epstein_subs.f90`, `mp_interp_harzallah_subs.f90`, and  `pseudo_daily_interp_subs.f90`, are the same as those in the `PaleoCalAdj` repository at [[https://github.com/pjbartlein/PaleoCalAdjust]](https://github.com/pjbartlein/PaleoCalAdjust), and so include some subprograms that are not actually used here. 
+
 ## Testing ##
 
 The four approaches were tested by attempting to reproduce some of the figures in the original articles. Figure 1 in Epstein (1991), Fig. 2 in Harzallah (1995), Fig. 5a in Killworth (1996), and Figs. 4 and 5 in Rymes and Meyers (2001) were extracted from .pdfs of the articles, and the mean inner-interval values (i.e. annual values in Harzallah (1995), monthly values in the others) were digitized.  These values are shown in blue in the figures in the folder `/test_methods/plots/`.  The interpolated subinterval values are shown by small red dots, and the inner-interval means ofthose values are shown by larger red dots.  The differences between the published examples and their reproduction here are small, and probably related to the digitization.

@@ -1,7 +1,7 @@
 program demo_1yr_epstein_01
 ! demonstrates Epstein (1991) harmonic pseudo-daily interpolation -- single year of different data sets
     
-use mean_preserving_subs
+use pseudo_daily_interp_subs
 use mp_interp_epstein_subs
     
 implicit none
@@ -69,7 +69,7 @@ ym = demo_tas
 no_negatives = .false.; match_mean = .false. 
 
 call mp_interp_epstein(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    smooth, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    smooth, no_negatives, match_mean, tol, ntargs, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym
@@ -90,7 +90,7 @@ ym = demo_tas
 no_negatives = .false.; match_mean = .true. 
 
 call mp_interp_epstein(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    smooth, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    smooth, no_negatives, match_mean, tol, ntargs, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym
@@ -111,7 +111,7 @@ ym = demo_pr
 no_negatives = .true.; match_mean = .false. 
 
 call mp_interp_epstein(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    smooth, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    smooth, no_negatives, match_mean, tol, ntargs, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym
@@ -133,7 +133,7 @@ ym = demo_pr
 no_negatives = .true.; match_mean = .true. 
 
 call mp_interp_epstein(ny, nm, nctrl, ym, yfill, x_ctrl, nsubint, & 
-    smooth, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
+    smooth, no_negatives, match_mean, tol, ntargs, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
 write (*, '(a)') " "
 write (*, '(" input: ", 12f8.2)') ym

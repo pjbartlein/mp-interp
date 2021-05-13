@@ -14,7 +14,7 @@ contains
 subroutine mp_interp_killworth(n_outer, n_inner, nctrl, ym, yfill, x_ctrl, nsubint, &
     npad, no_negatives, match_mean, tol, ntargs, x_targ, max_nctrl_in, max_ntargs_in, y_int, ym_int)
 
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
 
     implicit none
     
@@ -174,7 +174,7 @@ end subroutine mp_interp_killworth
 subroutine ainv_int(nctrl, ym, ymiss, x_ctrl, nsubint, ntargs, x_targ, y_int, ym_int)
 ! manages Killworth-style "A-inv" pseudo-daily interpolation
 
-    use mean_preserving_subs
+    use pseudo_daily_interp_subs
     use lapack95    ! Intel MKL on Windows
     !use f95_lapack  ! https://masuday.github.io/fortran_tutorial/external.html#blas-and-lapack + lapack from Homebrew on mac
     
