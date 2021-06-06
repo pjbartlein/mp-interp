@@ -5,7 +5,7 @@ module pseudo_daily_interp_subs
 
     integer             :: debug_unit = 10
     integer             :: out_unit = 6
-    logical             :: debug_em = .true.
+    logical             :: debug_em = .false.
     logical             :: debug_day = .false.  
 
 contains
@@ -72,7 +72,7 @@ subroutine enforce_mean(nctrl, ntargs, nsubint, tol, ym, yd, ymiss)
             cycle
         end if
         
-        ! adjust or adopt the daily values
+        ! otherwise, adjust or adopt the daily values
             
         ! check for differences in actual mean and mean of interpolated values
         diff = ym(n) - ydm(n)
@@ -111,7 +111,6 @@ subroutine enforce_mean(nctrl, ntargs, nsubint, tol, ym, yd, ymiss)
                 yd_old = yd(i)
                 ii = ii + 1
                 if (yd(i) .ne. 0.0d0) then
-                    !yd_adjust = diff * (dble(nzero) / dble(nsubint(n)))
                     yd_adjust = ((yd(i) / nonzero_sum) * diff) * dble(nsubint(n))
                     yd(i) = yd(i) + yd_adjust
                     yd_out_sum = yd_out_sum + yd(i)
