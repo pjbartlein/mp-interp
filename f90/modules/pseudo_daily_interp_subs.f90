@@ -29,9 +29,6 @@ subroutine enforce_mean(nctrl, ntargs, nsubint, tol, ym, yd, ymiss)
     
     integer(4)              :: i, ii, ib, ie, j, jj, n, nn, nzero 
     
-    !debug_unit = 13    
-    !debug_em = .false.
-    
     if (debug_em) write (debug_unit,'(a)') "In enforce_mean"
     if (debug_em) write (debug_unit,'("tol: ", f8.5)') tol
     if (debug_em) write (debug_unit,'("nctrl, ntargs: ", 2i8/)') nctrl, ntargs
