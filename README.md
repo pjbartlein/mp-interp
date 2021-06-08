@@ -51,7 +51,7 @@ Overall, there is more similarity than difference among the approaches; all prod
 
 The modules can be found in the folder `/f90/modules/`, and demonstration programs for producing the results described below can e found in the folder `/f90/demo_programs/`.  The program `test_epstein.f90`, for example, was used to regenerate Fig. 1 in Epstein (1991), the program `demo_ts_epstein.f90` was used to regenerate the data for the comparison figures, and the program `demo_1yr_epstein.f90` produces simple output at the console for a single year of data.
 
-The modules `mp_interp_epstein_subs.f90`, `mp_interp_harzallah_subs.f90`, and `pseudo_daily_interp_subs.f90`, are the same as those in the `PaleoCalAdj` repository at [[https://github.com/pjbartlein/PaleoCalAdjust]](https://github.com/pjbartlein/PaleoCalAdjust), and the latter module includes some subprograms that are not actually used here. 
+The modules `mp_interp_epstein_subs.f90`, `mp_interp_harzallah_subs.f90`, are the same as those in the `PaleoCalAdj` repository at [[https://github.com/pjbartlein/PaleoCalAdjust]](https://github.com/pjbartlein/PaleoCalAdjust).  The module   `pseudo_daily_interp_subs.f90`, is also the same, and includes some subprograms that are not actually used here. 
 
 The programs were run on Windows 10, using the Intel Fortran Compiler version 19.1 in the Microsoft Visual Studio Community 2019 development environment, and on MacOS Catalina using the gcc gfortran compiler version 10.2.0, in the Eclipse for Scientific Computing IDE version 2020-09 (4.17.0).  
 
