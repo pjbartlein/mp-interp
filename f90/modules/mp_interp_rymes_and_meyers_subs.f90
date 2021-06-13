@@ -38,7 +38,7 @@ subroutine mp_interp_rymes_and_meyers(n_outer, n_inner, nctrl, ym, yfill, x_ctrl
     real(8), intent(inout)        :: ym_int(nctrl)                    ! mean of interpolated values
                                                                     ! inner interval = e.g. months, outer interval = e.g. year
     
-    integer(4), parameter       :: maxit = 50                       ! max number of iterations
+    integer(4), parameter       :: maxit = 365                       ! max number of iterations
     integer(4), parameter       :: init_type = 2                    ! initialization type, 1 = spread, 2 = linear interp
     
     real(8)             :: ym_in(max_nctrl_in), x_ctrl_in(max_nctrl_in)
@@ -170,7 +170,7 @@ subroutine mp_interp_rymes_and_meyers(n_outer, n_inner, nctrl, ym, yfill, x_ctrl
     if (debug_write) write (debug_unit,*) nctrl, ntargs
     if (match_mean) then
         if (debug_write) write (debug_unit, '(a)') "call enforce_mean() "
-        call enforce_mean(nctrl, ntargs, nsubint, tol, ym, y_int, yfill)
+        call enforce_mean(nctrl, ntargs, nsubint, tol, no_negatives, ym, y_int, yfill)
     end if
     
     call interval_mean(nctrl, nsubint, ntargs, y_int, yfill, ym_int)
